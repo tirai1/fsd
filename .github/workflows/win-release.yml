@@ -8,7 +8,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: "^1.14.4"
+          go-version: "^1.15.0"
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -19,9 +19,10 @@ jobs:
           mkdir -p tmp
 
           while read os arch; do
-            [ -n "$os"] || continue
+            [ -n "$os" ] || continue
             GOOS="$os" GOARCH="$arch" script/build -o bin/hub
-            tar czf tmp/hub-${os}-${arch}-2.15.0.tgz --exclude '*.md' -- bin/hub LICENSE etc share
+            cp script/install.sh ./install && chmod +x ./install
+            tar czf "tmp/hub-${os}-${arch}-2.15.0.tgz" --exclude '*.md' -- bin/hub install LICENSE etc share
           done <<<"
             linux    amd64
             linux    386
@@ -43,7 +44,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: "^1.14.4"
+          go-version: "^1.15.0"
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -68,7 +69,8 @@ jobs:
       - name: Package
         run: |
           mkdir -p tmp
-          tar czf tmp/hub-darwin-amd64-2.15.0.tgz --exclude '*.md' -- bin/hub LICENSE etc share
+          cp script/install.sh ./install && chmod +x ./install
+          tar czf tmp/hub-darwin-amd64-2.15.0.tgz --exclude '*.md' -- bin/hub install LICENSE etc share
 
       - name: Store artifact
         uses: actions/upload-artifact@v2
@@ -92,7 +94,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
-          go-version: "^1.14.4"
+          go-version: "^1.15.0"
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -114,7 +116,7 @@ jobs:
               /sha1 "$CERT_THUMBPRINT" /fd sha256 /tr http://timestamp.digicert.com /td sha256 /v "$1"
           }
 
-          make man-pages
+          mingw32-make man-pages
           rm -rf share/{man,vim}
 
           for arch in amd64 386; do
