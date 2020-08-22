@@ -114,6 +114,7 @@ jobs:
         shell: bash
         run: |
           cert="$(echo "$PWD/windows-certificate.pfx" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')"
+          cert="D${cert#d}"
           echo "cert path: [$cert]"
 
           sign() {
