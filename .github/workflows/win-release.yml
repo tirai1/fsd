@@ -118,7 +118,7 @@ jobs:
           echo "cert path: [$cert]"
 
           sign() {
-            signtool sign /d "hub CLI" /f "$2" /p "$GITHUB_CERT_PASSWORD" \
+            signtool sign /debug /d "hub CLI" /f "$2" /p "$GITHUB_CERT_PASSWORD" \
               /sha1 "$CERT_THUMBPRINT" /fd sha256 /tr http://timestamp.digicert.com /td sha256 /v "$1"
           }
 
