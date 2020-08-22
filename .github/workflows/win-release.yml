@@ -20,7 +20,7 @@ jobs:
 
           while read os arch; do
             [ -n "$os" ] || continue
-            GOOS="$os" GOARCH="$arch" script/build -o bin/hub
+            GOOS="$os" GOARCH="$arch" LDFLAGS='-s -w' script/build -o bin/hub
             cp script/install.sh ./install && chmod +x ./install
             tar czf "tmp/hub-${os}-${arch}-2.15.0.tgz" --exclude '*.md' -- bin/hub install LICENSE etc share
           done <<<"
@@ -58,6 +58,8 @@ jobs:
 
       - name: Build
         run: make bin/hub man-pages
+        env:
+          LDFLAGS: "-s -w"
 
       - name: Sign binary
         run: |
@@ -111,9 +113,11 @@ jobs:
       - name: Build, sign, and package
         shell: bash
         run: |
+          cert="$(echo "$PWD/windows-certificate.pfx" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')"
+          echo "cert path: [$cert]"
+
           sign() {
-            echo "signing $1..."
-            signtool sign /d "hub CLI" /f .\windows-certificate.pfx /p "$GITHUB_CERT_PASSWORD" \
+            signtool sign /d "hub CLI" /f "$2" /p "$GITHUB_CERT_PASSWORD" \
               /sha1 "$CERT_THUMBPRINT" /fd sha256 /tr http://timestamp.digicert.com /td sha256 /v "$1"
           }
 
@@ -132,8 +136,8 @@ jobs:
             rm -f "$zipfile"
             
             go-msi make --msi "$PWD/$msi" --out "$PWD/$tmpdir" --version 2.15.0
-            sign "$msi"
-            sign bin/hub.exe
+            sign "$msi" "$cert"
+            sign bin/hub.exe "$cert"
             zip "$zipfile" bin/hub.exe LICENSE share/doc/*/*.html
           done
         env:
