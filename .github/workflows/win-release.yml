@@ -113,12 +113,8 @@ jobs:
       - name: Build, sign, and package
         shell: bash
         run: |
-          cert="$(echo "$PWD/windows-certificate.pfx" | sed -e 's/^\///' -e 's/\//\\/g' -e 's/^./\0:/')"
-          cert="D${cert#d}"
-          echo "cert path: [$cert]"
-
           sign() {
-            signtool sign /debug /d "hub CLI" /f "$2" /p "$GITHUB_CERT_PASSWORD" \
+            script/signtool sign /d "hub CLI" /f windows-certificate.pfx /p "$GITHUB_CERT_PASSWORD" \
               /sha1 "$CERT_THUMBPRINT" /fd sha256 /tr http://timestamp.digicert.com /td sha256 /v "$1"
           }
 
@@ -137,8 +133,8 @@ jobs:
             rm -f "$zipfile"
             
             go-msi make --msi "$PWD/$msi" --out "$PWD/$tmpdir" --version 2.15.0
-            sign "$msi" "$cert"
-            sign bin/hub.exe "$cert"
+            sign "$msi"
+            sign bin/hub.exe
             zip "$zipfile" bin/hub.exe LICENSE share/doc/*/*.html
           done
         env:
